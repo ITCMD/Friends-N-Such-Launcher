@@ -37,7 +37,7 @@ echo Update Available. Downloading . . .
 del /f /q ver.txt
 timeout /t 3 >nul
 echo [96mUpdating Launcher . . .[0m
-curl https://github.com/ITCMD/Friends-N-Such-Launcher/raw/main/Launcher.bat -o LauncherUpdate.dat >nul 2>nul
+curl https://raw.githubusercontent.com/ITCMD/Friends-N-Such-Launcher/main/Launcher.bat -o LauncherUpdate.dat >nul 2>nul
 echo ^@echo off >UpdateLauncher.cmd
 echo find "title Friends N Such Minecraft Launcher" "LauncherUpdate.dat" ^>nul 2^>nul >>UpdateLauncher.cmd
 echo if not %%errorlevel%%==0 echo Launcher Update Failed ^& pause ^& exit >>UpdateLauncher.cmd
