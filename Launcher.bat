@@ -2,7 +2,7 @@
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
-set ver=1.5
+set ver=1.4
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
 if not exist "MultiMC\Instances\Friends N Such\Friends-N-Such.Identifier" goto setup
 ping google.com -n 1 >nul
@@ -36,9 +36,9 @@ if "%uptodate%"=="0" (
 echo Update Available. Downloading . . .
 del /f /q ver.txt
 timeout /t 3 >nul
-echo [96mUpdating Launcher . . .
-curl -LJO -s https://github.com/ITCMD/Friends-N-Such-Launcher/raw/main/Launcher.bat -o LauncherUpdate.dat>nul
-echo @echo off >UpdateLauncher.cmd
+echo [96mUpdating Launcher . . .[0m
+curl https://github.com/ITCMD/Friends-N-Such-Launcher/raw/main/Launcher.bat -o LauncherUpdate.dat >nul 2>nul
+echo ^@echo off >UpdateLauncher.cmd
 echo find "title Friends N Such Minecraft Launcher" "LauncherUpdate.dat" ^>nul 2^>nul >>UpdateLauncher.cmd
 echo if not %%errorlevel%%==0 echo Launcher Update Failed ^& pause ^& exit >>UpdateLauncher.cmd
 echo del /f /q "%~nx0" >>UpdateLauncher.cmd
