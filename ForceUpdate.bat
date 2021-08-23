@@ -1,8 +1,10 @@
 @echo off
 title Updating Friends N Such
 if "%cd%"=="%temp%" goto continue
-copy /Y "%~0" "%temp%"
-call "%temp%\%~nx0" "%cd%" & exit /b
+echo %cd%
+pAUSE
+copy /Y "%~0" "%temp%\%~nx0"
+call "%temp%\%~nx0" "%cd%"
 exit /b
 :continue
 ping google.com -n 1 >nul
