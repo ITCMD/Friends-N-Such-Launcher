@@ -2,7 +2,7 @@
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
-set ver=1.4
+set ver=1.5
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
 if not exist "MultiMC\Instances\Friends N Such\Friends-N-Such.Identifier" goto setup
 ping google.com -n 1 >nul
@@ -46,7 +46,6 @@ echo ren "LauncherUpdate.dat" "%~nx0" >>UpdateLauncher.cmd
 echo "%~nx0" "--ContinueUpdate" >>UpdateLauncher.cmd
 updateLauncher.cmd
 :ContinueUpdate
-echo [92mUpdated Launcher.[0m
 echo [96mUpdating Friends N Such . . .[0m
 echo [96mForcing Remap . . .[0m
 if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
@@ -59,7 +58,7 @@ echo [96mUnzipping . . .[0m
 7za.exe x Friends-N-Such-Mods-main.zip >nul
 if exist "Friends-N-Such-Mods-main\Prepare.bat" call "Friends-N-Such-Mods-main\Prepare.bat" "MultiMC\Instances\Friends N Such\.minecraft\"
 echo [96mCopying Files . . .[0m
-XCOPY "Friends-N-Such-Mods-main\*" "MultiMC\Instances\Friends N Such\.minecraft\" /s /i /y
+XCOPY "Friends-N-Such-Mods-main\*" "MultiMC\Instances\Friends N Such\.minecraft\" /s /i /y >nul
 echo [96mCleaning up . . .[0m
 if exist "Friends-N-Such-Mods-main\Cleanup.bat" call "Friends-N-Such-Mods-main\Cleanup.bat" "MultiMC\Instances\Friends N Such\.minecrat\"
 if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
