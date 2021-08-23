@@ -46,6 +46,7 @@ echo ren "LauncherUpdate.dat" "%~nx0" >>UpdateLauncher.cmd
 echo "%~nx0" "--ContinueUpdate" >>UpdateLauncher.cmd
 updateLauncher.cmd
 :ContinueUpdate
+if exist updateLauncher.cmd del /f /q updateLauncher.cmd
 echo [96mUpdating Friends N Such . . .[0m
 echo [96mForcing Remap . . .[0m
 if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
@@ -170,11 +171,13 @@ if %errorlevel%==0 (
 ) ELSE (
 	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   [91mServer Offline[90m
 )
+del /f /q stat.json
 :skipstatus
 curl http://webhook.itcommand.net:9444/hooks/players -o players.txt >nul 2>nul
 if %errorlevel%==0 (
 	for /f %%A in (players.txt) do (set players=!players!, %%~A)
 )
+if exist players.txt del /f /q players.txt
 echo   hhhyyyhyyhyhyhdhdddhdhddhh+     [0mPlayers:  [7m!players![0;90m
 
 echo   oyyhhyhhyhyyyhhdhhhdddddhy/ 
