@@ -1,5 +1,10 @@
 @echo off
 title Updating Friends N Such
+if "%cd%"=="%temp%" goto continue
+copy /Y "%~0" "%temp%"
+call "%temp%\%~nx0" "%cd%" & exit /b
+exit /b
+:continue
 ping google.com -n 1 >nul
 if not %errorlevel%==0 (
 	echo [91mERROR: No internet connection.[90m
@@ -20,9 +25,9 @@ echo [92mForcing Remap . . .[0m
 if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
 if exist "Friends-N-Such-Mods-main\" rmdir /s /q "Friends-N-Such-Mods-main"
 echo [96mConfiguring Unzip Tool . . .[0m
-if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe
+if not exist "7za.exe" curl -LJO -S https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe
 echo [96mDownloading latest modpack . . .[0m
-curl -LJO https://github.com/ITCMD/Friends-N-Such-Mods/archive/refs/heads/main.zip >nul
+curl -LJO -S https://github.com/ITCMD/Friends-N-Such-Mods/archive/refs/heads/main.zip >nul
 echo [96mUnzipping . . .[0m
 7za.exe x Friends-N-Such-Mods-main.zip >nul
 if exist "Friends-N-Such-Mods-main\Prepare.bat" call "Friends-N-Such-Mods-main\Prepare.bat" "%~1"
