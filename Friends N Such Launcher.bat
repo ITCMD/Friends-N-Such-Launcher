@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableDelayedExpansion
-if not exist "MultiMC\Instances\Friends N Such\Friends-N-Such.Identifie" goto setup
+if not exist "MultiMC\Instances\Friends N Such\Friends-N-Such.Identifier" goto setup
 set status=Up To Date
 set ver=1.5
 ping google.com -n 1 >nul
@@ -48,6 +48,7 @@ goto mainmenu
 
 
 :setup
+cls
 echo [92mPerforming First Time Setup[0m
 echo.
 :newinstance
@@ -67,15 +68,14 @@ if not %errorlevel%==0 (
 	pause
 	exit
 )
-cls
 echo [96mConfiguring Unzip Tool . . .[0m
-if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe
+if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe 2>nul
 if exist "MultiMC\MultiMC.exe" goto SkipMMC
 echo [96mDownloading MultiMC . . .[0m
 curl -LJO -s https://files.multimc.org/downloads/mmc-stable-win32.zip >nul
 echo [96mExtracting . . .[0m
 call 7za.exe x mmc-stable-win32.zip >nul
-md cd MultiMC\Instances\
+md MultiMC\Instances\
 :SkipMMC
 if exist "MultiMC\Instances\Friends N Such" (
 	echo this will delete your current copy of Friends N Such.
@@ -85,10 +85,10 @@ if exist "MultiMC\Instances\Friends N Such" (
 	rmdir /s /q "MultiMC\Instances\Friends N Such"
 )
 echo [96mDownloading and Creating Instance . . .[0m
-curl -LJO -s https://github.com/ITCMD/Friends-N-Such-Mods/raw/main/LatestInstall.zip >nul
+curl -LJO -s https://github.com/ITCMD/Friends-N-Such-Launcher/raw/main/LatestInstall.zip >nul
 cd MultiMC\Instances
-call ..\..\7za.exe x ..\..\LatestInstall.zip >nul
-echo [32mDownloading Mods and other Files . . .[0m
+call ..\..\7za.exe x ..\..\LatestInstall.zip
+echo [96mDownloading Mods and other Files . . .[0m
 cd "Friends N Such\.minecraft"
 if exist ForceUpdate.bat del /f /q ForceUpdate.bat
 curl -LJO -s https://github.com/ITCMD/Friends-N-Such-Launcher/raw/main/ForceUpdate.bat >nul
@@ -103,11 +103,12 @@ goto mainmenu
 
 :mainmenu
 cls
+title Friends N Such Minecraft Launcher
 echo [92mFriends N Such Minecraft[0m
 echo.
 echo Version: %ver% [[90m%status%[0m].
 echo Server: Play.itcommand.net
-curl http://play.itcommand.net:9444/hooks/Internal-Ping | find "Pong OK." >nul 2>nul
+curl -S http://play.itcommand.net:9444/hooks/Internal-Ping | find "Pong OK." >nul 2>nul
 if %errorlevel%==0 (
 	echo Status: [32mHost Online[0m
 ) ELSE (
