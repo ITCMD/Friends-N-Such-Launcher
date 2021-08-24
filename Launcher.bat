@@ -50,6 +50,8 @@ echo "%~nx0" "--ContinueUpdate" >>UpdateLauncher.cmd
 updateLauncher.cmd
 :ContinueUpdate
 if exist updateLauncher.cmd del /f /q updateLauncher.cmd
+echo [96mClosing any open Javaw.exe Windows . . .[0m
+taskkill /f /im javaw.exe >nul 2>nul
 echo [96mUpdating Friends N Such . . .[0m
 echo [96mForcing Remap . . .[0m
 if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
