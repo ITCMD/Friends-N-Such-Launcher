@@ -2,9 +2,12 @@
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
-set ver=1.5
+set ver=1.6
+set betterfoliageurl=https://media.forgecdn.net/files/3409/419/BetterFoliage-2.7.1-Forge-1.16.5.jar
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
+if /i "%~1"=="--Panel" start https://mc.itcommand.net:8056
 if not exist "MultiMC\Instances\Friends N Such\Friends-N-Such.Identifier" goto setup
+if not exist "MultiMC\DidSetup.ini" goto :multisetup
 ping google.com -n 1 >nul
 if not %errorlevel%==0 (
 	echo [91mERROR: No internet connection.[90m
@@ -138,7 +141,42 @@ echo [92mCleaning up . . .[0m
 del /f /q LatestInstall.zip
 del /f /q mmc-stable-win32.zip
 echo [92mDone![0m
-timeout /t 2 >nul
+timeout /t 4 >nul
+goto multisetup
+
+
+:multisetup
+cls
+echo Loading System Info . . .
+for /f "tokens=1,2 delims=:" %%A in ('systeminfo ^| find "Total Physical Memory"') do (set m=%%~B) >nul 2>nul
+:donemem
+echo [92mCongrats[0m
+echo MultiMC and Friends N Such are installed, however MultiMC Must be set up.
+echo.
+echo [92mJava[0m
+echo MultiMC Will launch now. It will ask you to select a java path.
+echo [4mSelect a x64 Java install[0m, not one in Program Files(x86).
+echo If you do not have x64 Java installed, close this and install it now.
+echo.
+echo [92mMemory[0m
+echo By Default, MultiMC only provides Minecraft with 1GB of RAM (1024 Mb).
+echo It's recommended you set the maximum RAM to around 5GB of system
+echo memory. You have %m% Mb of RAM.
+echo.
+echo [92mAccount[0m
+echo MultiMC Will ask you to add a Minecraft account.
+echo This account info is [4msecurely[0m stored locally.
+echo You can also add multiple accounts and switch between them freely.
+echo MultiMC should ask you for an account automatically.
+echo.
+echo Once you have completed these steps, close MultiMC and return here.
+pause
+echo.>"MultiMC\DidSetup.ini"
+call "MultiMC\MultiMC.exe"
+cls
+echo.
+echo You finished the setup. You can change these settings later form the main menu.
+timeout /t 5
 goto mainmenu
 
 
@@ -154,11 +192,14 @@ echo [32m  oyyyhhyyyyyyyyyyyyhyyyyyys:
 echo [90m  hhh[32myyyyyyyyyyyyyyyyyyhhh[90mmdo     [92;7m Friends N Such Minecraft [0;90m
 echo [90m  hhhyhh[32mdyyyyyyyyhyhhdd[90mddmddd     [0mVersion:  %ver% [[90m%status%[0m][90m
 echo [90m  hhyhhdhhh[32mhhhhhhddd[90mdmdddddd+     [0mServer:   mc.itcommand.net[90m
-curl -s http://play.itcommand.net:9444/hooks/Internal-Ping 2>nul | find "Pong OK." >nul 2>nul
+
+
+curl ftp://mc.itcommand.net:21/players.txt --user "mcplayers:mojang" -o players.txt >nul 2>nul
 if %errorlevel%==0 (
 	echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo     [0mStatus:   [32mHost Online[90m
 ) ELSE (
-	echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo     [0mStatus:   [32mHost Online[90m
+	echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo     [0mStatus:   [91mHost No Reply[90m
+	echo.>players.txt
 )
 curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net -o stat.json 2>nul
 if not "%errorlevel%"=="0" (
@@ -170,10 +211,10 @@ if %errorlevel%==0 (
 	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   [32mServer Online[90m
 ) ELSE (
 	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   [91mServer Offline[90m
+	set offline=true
 )
-del /f /q stat.json
 :skipstatus
-curl http://webhook.itcommand.net:9444/hooks/players -o players.txt >nul 2>nul
+del /f /q stat.json
 if %errorlevel%==0 (
 	for /f %%A in (players.txt) do (set players=!players!, %%~A)
 )
@@ -191,22 +232,69 @@ echo 1] Launch Game
 echo 2] Export Config [90m(Sensitivity, graphics, shader settings)[0m
 echo 3] Import Config
 echo 4] Reset Mods [90m(Force Update)[0m
-echo 5] Full Reset
+echo 5] Reset Instance
+echo 6] Full Reset
+echo 7] Open MultiMC menu [90m(Settings, accounts)[0m
+echo 8] Toggle Better Foliage [90m(Requires additional Resources)[0m
 echo [90mX] Exit[0m
 echo.
-choice /c 12345X
+choice /c 12345678XL
 if %errorlevel%==1 goto launch
 if %errorlevel%==2 goto expcfg
 if %errorlevel%==3 goto impcfg
 if %errorlevel%==4 goto resmods
-if %errorlevel%==5 goto fullreset
-if %errorlevel%==6 goto exit
+if %errorlevel%==5 goto resetint
+if %errorlevel%==6 goto fullreset
+if %errorlevel%==7 goto justmultimc
+if %errorlevel%==8 goto betterf
+if %errorlevel%==9 goto exit
+if %errorlevel%==10 start https://mc.itcommand.net:8056
+goto mainmenu
 
+
+
+:betterf
+cls
+if exist "MultiMC\Instances\Friends N Such\.minecraft\mods\BetterFoliage*" (
+	echo Mod is currently enabled.
+	echo Disable?
+	choice
+	if !errorlevel!==1 del /f /q "MultiMC\Instances\Friends N Such\.minecraft\mods\BetterFoliage*"
+	goto mainmenu
+)
+echo Mod is currently Disabled.
+echo Enable?
+choice
+if %errorlevel%==2 goto mainmenu
+curl -LJO %betterfoliageurl% >nul 2>nul
+move "BetterFoliage*" "MultiMC\Instances\Friends N Such\.minecraft\mods\" >nul
+echo [92mMod Enabled[0m
+pause
+goto mainmenu
+
+
+:justmultimc
+cls
+echo Launching MultiMC by itself.
+"MultiMC\MultiMC.exe"
+timeout /t 5
+goto mainmenu
+
+
+
+:resetint
+echo Are you sure?
+choice
+if %errorlevel%==2 goto mainmenu
+cls
+echo [96mResetting Instance . . .
+rmdir /s /q "MultiMC\Instances\Friends N Such"
+goto newinstance
 
 
 :expcfg
 cls
-pause not exist "MultiMC\Instances\Friends N Such\.minecraft\options.txt" (
+if not exist "MultiMC\Instances\Friends N Such\.minecraft\options.txt" (
 	echo No Options were found. You'll have to run the game first.
 	pause
 	goto mainmenu
@@ -230,20 +318,26 @@ goto mainmenu
 
 :impcfg
 cls
+md Confg
+cd Confg
 echo Drag and drop Config 7z file to here:
 set /p cfg=">"
+set cfg=%cfg:"=%
 echo [96mConfiguring Unzip Tool . . .[0m
-if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe
-7za l "%cfg%" | find "FNS.ID.CFG" >nul 2>nul
+if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe 2>nul >nul
+7za l "%cfg%" | find "FNS.ID.CFG" >nul
 if %errorlevel%==1 (
 	echo Invalid Friends-N-Such-Config.
+	cd ..
+	rmdir Confg
 	pause
 	goto mainmenu
 )
-cd MultiMC\Instances\Friends N Such\.minecraft
-7za.exe -y x "%cfg%"
+7za.exe e "%cfg%" >nul
+move /Y "*.txt" "..\MultiMC\Instances\Friends N Such\.minecraft\" >nul
 echo [92m Import Complete.[0m
-cd ..\..\..\..
+cd ..
+rmdir /s /q Confg
 pause
 goto mainmenu
 
@@ -251,11 +345,15 @@ goto mainmenu
 
 
 :launch
+if "%offline%"=="true" (
+	echo Server appears offline. Continue?
+	choice
+	if !errorlevel!==2 goto mainmenu
+)
 echo [92mLaunching Friends N Such . . .[0m
 call "MultiMC\MultiMC.exe" -V 
-"MultiMC\MultiMC.exe" -L "Friends N Such"
 timeout /t 5
-exit
+goto mainmenu
 
 
 
