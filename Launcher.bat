@@ -347,13 +347,18 @@ goto mainmenu
 
 
 :launch
+cls
 if "%offline%"=="true" (
 	echo Server appears offline. Continue?
 	choice
 	if !errorlevel!==2 goto mainmenu
 )
-echo [92mLaunching Friends N Such . . .[0m
+echo [92mLaunching Friends N Such . . .[90m
+echo MultiMC Version:
 call "MultiMC\MultiMC.exe" -V 
+timeout /t 2 >nul 2>nul
+echo [92mStarting Instance . . .[0m
+call "MultiMC\MultiMC.exe" -l "Friends N Such"
 timeout /t 5
 goto mainmenu
 
