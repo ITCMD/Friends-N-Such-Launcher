@@ -2,7 +2,7 @@
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
-set ver=1.6
+set ver=1.7
 set betterfoliageurl=https://media.forgecdn.net/files/3409/419/BetterFoliage-2.7.1-Forge-1.16.5.jar
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
 if /i "%~1"=="--Panel" start https://mc.itcommand.net:8056
@@ -183,15 +183,15 @@ goto mainmenu
 
 
 :mainmenu
-del /f /q 7za.exe
+if exist 7za.exe del /f /q 7za.exe
 cls
 title Friends N Such Minecraft Launcher
 echo ========================================================================
 echo [32m            .-/ss+:.
 echo [32m        .:+shyyyyyyo/-`       
 echo [32m   `.:+syyyyyyyyyyyhyyso/-`       
-echo [32m  oyyyhhyyyyyyyyyyyyhyyyyyys: 
-echo [90m  hhh[32myyyyyyyyyyyyyyyyyyhhh[90mmdo     [92;7m Friends N Such Minecraft [0;90m
+echo [32m  oyyyhhyyyyyyyyyyyyhyyyyyys:     [92;7m Friends N Such Minecraft [0;90m
+echo [90m  hhh[32myyyyyyyyyyyyyyyyyyhhh[90mmdo     [90m[===  By  SystemInfo  ===][0m
 echo [90m  hhhyhh[32mdyyyyyyyyhyhhdd[90mddmddd     [0mVersion:  %ver% [[90m%status%[0m][90m
 echo [90m  hhyhhdhhh[32mhhhhhhddd[90mdmdddddd+     [0mServer:   mc.itcommand.net[90m
 
@@ -199,38 +199,73 @@ echo [90m  hhyhhdhhh[32mhhhhhhddd[90mdmdddddd+     [0mServer:   mc.itcommand
 curl ftp://mc.itcommand.net:21/players.txt --user "mcplayers:mojang" -o players.txt >nul 2>nul
 if %errorlevel%==0 (
 	echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo     [0mStatus:   [32mHost Online[90m
+	curl ftp://mc.itcommand.net:21/explore/players.txt --user "mcplayers:mojang" -o exploreplayers.txt >nul 2>nul
 ) ELSE (
 	echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo     [0mStatus:   [91mHost No Reply[90m
 	echo.>players.txt
 )
-curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net -o stat.json 2>nul
+curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net:25565 -o stat.json 2>nul
 if not "%errorlevel%"=="0" (
 	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
 	goto skipstatus
 )
 find ",""online"":true,""" "stat.json" >nul 2>nul
 if %errorlevel%==0 (
-	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   [32mServer Online[90m
+	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mPrimary:  [32mServer Online[90m
 ) ELSE (
-	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   [91mServer Offline[90m
+	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mPrimary:  [91mServer Offline[90m
 	set offline=true
 )
 :skipstatus
-del /f /q stat.json
+
+curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net:25567 -o stat2.json 2>nul
+if not "%errorlevel%"=="0" (
+	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
+	goto skip2status
+)
+find ",""online"":true,""" "stat2.json" >nul 2>nul
 if %errorlevel%==0 (
-	for /f %%A in (players.txt) do (set players=!players!, %%~A)
+	echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+     [0mExplore:  [32mServer Online[90m
+) ELSE (
+	echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+     [0mExplore:  [91mServer Offline[90m
+	set expoffline=true
+)
+:skip2status
+del /f /q stat.json
+del /f /q stat2.json
+set players=
+set expplayers=
+if exist players.txt (
+	set count=0
+	for /f %%A in (players.txt) do (
+		if "!count!"=="0" (
+			set players=%%~A
+		) ELSE (
+			set players=!players!, %%~A
+		)
+		set /a count+=1
+	)
+)
+if exist exploreplayers.txt (
+	set count=0
+	for /f %%A in (exploreplayers.txt) do (
+		if "!count!"=="0" (
+			set expplayers=%%~A
+		) ELSE (
+			set expplayers=!expplayers!, %%~A
+		)
+		set /a count+=1
+	)
 )
 if exist players.txt del /f /q players.txt
-echo   hhhyyyhyyhyhyhdhdddhdhddhh+     [0mPlayers:  [7m!players![0;90m
-
-echo   oyyhhyhhyhyyyhhdhhhdddddhy/ 
-echo    `./oyyyyhhyyhddddddhs+:`   
+echo   oyyhhyhhyhyyyhhdhhhdddddhy/     [0mPrimary Players: [7m!players![0;90m
+echo    `./oyyyyhhyyhddddddhs+:`       [0mExplore Players: [7m!expplayers![0;90m
 echo        `.:oyyyyhddhy+:`       
-echo            `-/syo:.``[0m
-
+echo            `-/syo:.``             Main Menu[0m
 echo.[0m
 echo ========================================================================
 echo 1] Launch Game
+echo E] Open FNS Explorer Menu [96m(New^^!)[0m
 echo 2] Export Config [90m(Sensitivity, graphics, shader settings)[0m
 echo 3] Import Config
 echo 4] Reset Mods [90m(Force Update)[0m
@@ -238,9 +273,9 @@ echo 5] Reset Instance
 echo 6] Full Reset
 echo 7] Open MultiMC menu [90m(Settings, accounts)[0m
 echo 8] Toggle Better Foliage [90m(Requires additional Resources)[0m
-echo [90mX] Exit[0m
+echo [90mX] Exit ^| [R] Refresh[0m
 echo.
-choice /c 12345678XL
+choice /c 12345678XLER
 if %errorlevel%==1 goto launch
 if %errorlevel%==2 goto expcfg
 if %errorlevel%==3 goto impcfg
@@ -251,9 +286,196 @@ if %errorlevel%==7 goto justmultimc
 if %errorlevel%==8 goto betterf
 if %errorlevel%==9 goto exit
 if %errorlevel%==10 start https://mc.itcommand.net:8056
+if %errorlevel%==11 goto explorer
+if %errorlevel%==12 goto mainmenu
 goto mainmenu
 
 
+:explorer
+cls
+if not exist "MultiMC\Instances\FNS Exploring\.minecraft" goto setexpl
+if exist 7za.exe del /f /q 7za.exe
+cls
+title Friends N Such Minecraft Launcher
+echo ========================================================================
+echo [96m            .-/ss+:.
+echo [96m        .:+shyyyyyyo/-`       
+echo [96m   `.:+syyyyyyyyyyyhyyso/-`       
+echo [96m  oyyyhhyyyyyyyyyyyyhyyyyyys:     [96;7m Friends N Such Minecraft [0;90m
+echo [90m  hhh[96myyyyyyyyyyyyyyyyyyhhh[90mmdo     [90m[===  By  SystemInfo  ===][0m
+echo [90m  hhhyhh[96mdyyyyyyyyhyhhdd[90mddmddd     [0mVersion:  %ver% [[90m%status%[0m][90m
+echo [90m  hhyhhdhhh[96mhhhhhhddd[90mdmdddddd+     [0mServer:   mc.itcommand.net[90m
+
+
+curl ftp://mc.itcommand.net:21/players.txt --user "mcplayers:mojang" -o players.txt >nul 2>nul
+if %errorlevel%==0 (
+	echo [90m  yyyyhdddhhh[96mhhddd[90mddddmdhdddo     [0mStatus:   [92mHost Online[90m
+	curl ftp://mc.itcommand.net:21/explore/players.txt --user "mcplayers:mojang" -o exploreplayers.txt >nul 2>nul
+) ELSE (
+	echo [90m  yyyyhdddhhh[96mhhddd[90mddddmdhdddo     [0mStatus:   [91mHost No Reply[90m
+	echo.>players.txt
+)
+curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net:25565 -o stat.json 2>nul
+if not "%errorlevel%"=="0" (
+	echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
+	goto eskipstatus
+)
+find ",""online"":true,""" "stat.json" >nul 2>nul
+if %errorlevel%==0 (
+	echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo     [0mPrimary:  [92mServer Online[90m
+) ELSE (
+	echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo     [0mPrimary:  [91mServer Offline[90m
+	set offline=true
+)
+:eskipstatus
+
+curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net:25567 -o stat2.json 2>nul
+if not "%errorlevel%"=="0" (
+	echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
+	goto eskip2status
+)
+find ",""online"":true,""" "stat2.json" >nul 2>nul
+if %errorlevel%==0 (
+	echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+     [0mExplore:  [92mServer Online[90m
+) ELSE (
+	echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+     [0mExplore:  [91mServer Offline[90m
+	set expoffline=true
+)
+:eskip2status
+del /f /q stat.json
+del /f /q stat2.json
+if exist players.txt (
+	set count=0
+	for /f %%A in (players.txt) do (
+		if "!count!"=="0" (
+			set players=%%~A
+		) ELSE (
+			set players=!players!, %%~A
+		)
+		set /a count+=1
+	)
+)
+if exist exploreplayers.txt (
+	set count=0
+	for /f %%A in (exploreplayers.txt) do (
+		if "!count!"=="0" (
+			set expplayers=%%~A
+		) ELSE (
+			set expplayers=!expplayers!, %%~A
+		)
+		set /a count+=1
+	)
+)
+if exist players.txt del /f /q players.txt
+if exist exploreplayers.txt del /f /q exploreplayers.txt
+echo   oyyhhyhhyhyyyhhdhhhdddddhy/     [0mPrimary Players:  [7m!players![0;90m
+echo    `./oyyyyhhyyhddddddhs+:`       [0mExplore Players:  [7m!expplayers![0;90m
+echo        `.:oyyyyhddhy+:`     
+echo            `-/syo:.``             Explorer Menu[0m
+echo.
+echo.
+echo ===============================================
+echo [0m1] Launch Exploring Instance
+echo 2] Import Config
+echo 3] Refresh Explorer Mods (Force Update)
+echo 4] Enable Better Foliage
+echo [90mX] Main Menu  ^|  [R] Refresh[0m
+choice /c 1234xr
+if %errorlevel%==1 goto launchexp
+if %errorlevel%==2 goto importexp
+if %errorlevel%==3 (
+	cls
+	taskkill /f /im javaw.exe >nul 2>nul
+	rmdir /s /q "MultiMC\Instances\FNS Explorer\mods"
+	mkdir "MultiMC\Instances\FNS Explorer\mods\"
+	cd "MultiMC\Instances\FNS Explorer\mods\"
+	goto setupexpmods
+)
+if %errorlevel%==4 goto 2betterfexp
+if %errorlevel%==5 goto mainmenu
+if %errorlevel%==6 goto explorer
+goto explorer
+
+:launchexp
+cls
+echo [92mLaunching FNS Explorer . . .[90m
+echo MultiMC Version:
+call "MultiMC\MultiMC.exe" -V 
+timeout /t 2 >nul 2>nul
+echo [92mStarting Instance . . .[0m
+start /MIN "" "MultiMC\MultiMC.exe" -l "FNS Exploring"
+timeout /t 5
+goto explorer
+
+:importexp
+cls
+md Confg
+cd Confg
+echo Drag and drop Config 7z file to here:
+set /p cfg=">"
+set cfg=%cfg:"=%
+echo [96mConfiguring Unzip Tool . . .[0m
+if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe 2>nul >nul
+7za l "%cfg%" | find "FNS.ID.CFG" >nul
+if %errorlevel%==1 (
+	echo Invalid Friends-N-Such-Config.
+	cd ..
+	rmdir Confg
+	pause
+	goto mainmenu
+)
+7za.exe e "%cfg%" >nul
+move /Y "*.txt" "..\MultiMC\Instances\FNS Exploring\.minecraft\" >nul
+echo [92mImport Complete.[0m
+cd ..
+rmdir /s /q Confg
+pause
+goto explorer
+
+:setexpl
+cls
+cd MultiMC\Instances
+echo [96mConfiguring Unzip Tool . . .[0m
+if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe 2>nul >nul
+echo [96mDownloading Instance . . .[0m
+curl -LJO https://github.com/ITCMD/Friends-N-Such-Launcher/raw/main/ExplorerInstance.zip >nul 2>nul
+echo [96m Unzipping . . .[0m
+7za x ExplorerInstance.zip >nul
+del /f /q ExplorerInstance.zip
+move "7za.exe" "FNS Exploring\.minecraft\mods\" >nul
+cd "FNS Exploring\.minecraft\mods\"
+
+:setupexpmods
+if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe 2>nul >nul
+echo [96mDownloading Mods . . .[0m
+echo [90mThis may take several minutes . . .[0m
+curl ftp://mc.itcommand.net:21/explore/ExplorerMods.zip --user "mcplayers:mojang" -o ExplorerMods.zip
+7za x ExplorerMods.zip >nul
+del /f /q 7za.exe
+del /f /q ExplorerMods.zip
+cd ..\..\..\..\..
+goto explorer
+
+
+
+:2betterfexp
+cls
+if exist "MultiMC\Instances\FNS Explorer\.minecraft\mods\BetterFoliage*" (
+	echo Mod is currently enabled.
+	echo Disable?
+	choice
+	if !errorlevel!==1 del /f /q "MultiMC\Instances\FNS Explorer\.minecraft\mods\BetterFoliage*"
+	goto explorer
+)
+echo Mod is currently Disabled.
+echo Enable?
+choice
+if %errorlevel%==2 goto explorer
+curl -LJO %betterfoliageurl% >nul 2>nul
+move "BetterFoliage*" "MultiMC\Instances\FNS Explorer\.minecraft\mods\" >nul
+echo [92mMod Enabled[0m
+pause
+goto explorer
 
 :betterf
 cls
@@ -290,6 +512,7 @@ choice
 if %errorlevel%==2 goto mainmenu
 cls
 echo [96mResetting Instance . . .
+taskkill /f /im javaw.exe >nul 2>nul
 rmdir /s /q "MultiMC\Instances\Friends N Such"
 goto newinstance
 
@@ -358,7 +581,7 @@ echo MultiMC Version:
 call "MultiMC\MultiMC.exe" -V 
 timeout /t 2 >nul 2>nul
 echo [92mStarting Instance . . .[0m
-call "MultiMC\MultiMC.exe" -l "Friends N Such"
+start /MIN "" "MultiMC\MultiMC.exe" -l "Friends N Such"
 timeout /t 5
 goto mainmenu
 
