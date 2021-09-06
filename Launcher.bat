@@ -2,7 +2,7 @@
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
-set ver=1.7
+set ver=1.8
 set betterfoliageurl=https://media.forgecdn.net/files/3409/419/BetterFoliage-2.7.1-Forge-1.16.5.jar
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
 if /i "%~1"=="--Panel" start https://mc.itcommand.net:8056
@@ -204,7 +204,7 @@ if %errorlevel%==0 (
 	echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo     [0mStatus:   [91mHost No Reply[90m
 	echo.>players.txt
 )
-curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net:25565 -o stat.json 2>nul
+curl -LJ https://api.mcsrvstat.us/2/mc.itcommand.net:25565 -o stat.json 2>nul
 if not "%errorlevel%"=="0" (
 	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
 	goto skipstatus
@@ -218,7 +218,7 @@ if %errorlevel%==0 (
 )
 :skipstatus
 
-curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net:25567 -o stat2.json 2>nul
+curl -LJ https://api.mcsrvstat.us/2/mc.itcommand.net:25567 -o stat2.json 2>nul
 if not "%errorlevel%"=="0" (
 	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
 	goto skip2status
@@ -315,7 +315,7 @@ if %errorlevel%==0 (
 	echo [90m  yyyyhdddhhh[96mhhddd[90mddddmdhdddo     [0mStatus:   [91mHost No Reply[90m
 	echo.>players.txt
 )
-curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net:25565 -o stat.json 2>nul
+curl -LJ https://api.mcsrvstat.us/2/mc.itcommand.net:25565 -o stat.json 2>nul
 if not "%errorlevel%"=="0" (
 	echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
 	goto eskipstatus
@@ -329,7 +329,7 @@ if %errorlevel%==0 (
 )
 :eskipstatus
 
-curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net:25567 -o stat2.json 2>nul
+curl -LJ https://api.mcsrvstat.us/2/mc.itcommand.net:25567 -o stat2.json 2>nul
 if not "%errorlevel%"=="0" (
 	echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
 	goto eskip2status
@@ -371,14 +371,14 @@ if exist exploreplayers.txt del /f /q exploreplayers.txt
 echo   oyyhhyhhyhyyyhhdhhhdddddhy/     [0mPrimary Players:  [7m!players![0;90m
 echo    `./oyyyyhhyyhddddddhs+:`       [0mExplore Players:  [7m!expplayers![0;90m
 echo        `.:oyyyyhddhy+:`     
-echo            `-/syo:.``             Explorer Menu[0m
+echo            `-/syo:.``             Explorer Menu[0m  Port: 25567
 echo.
 echo.
 echo ===============================================
 echo [0m1] Launch Exploring Instance
 echo 2] Import Config
-echo 3] Refresh Explorer Mods (Force Update)
-echo 4] Enable Better Foliage
+echo 3] Refresh Explorer Mods [90m(Force Update)0m
+echo 4] Toggle Better Foliage
 echo [90mX] Main Menu  ^|  [R] Refresh[0m
 choice /c 1234xr
 if %errorlevel%==1 goto launchexp
