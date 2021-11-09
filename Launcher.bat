@@ -2,7 +2,7 @@
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
-set ver=1.8
+set ver=1.9
 set betterfoliageurl=https://media.forgecdn.net/files/3409/419/BetterFoliage-2.7.1-Forge-1.16.5.jar
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
 if /i "%~1"=="--Panel" start https://mc.itcommand.net:8056
@@ -10,7 +10,7 @@ if not exist "MultiMC\Instances\Friends N Such\Friends-N-Such.Identifier" goto s
 if not exist "MultiMC\DidSetup.ini" goto :multisetup
 ping google.com -n 1 >nul
 if not %errorlevel%==0 (
-	echo [91mERROR: No internet connection.[90m
+	echo [91mERROR: No internet connection[90m
 	echo Could not reach google.com.[0m
 	pause
 	exit
@@ -273,9 +273,10 @@ echo 5] Reset Instance
 echo 6] Full Reset
 echo 7] Open MultiMC menu [90m(Settings, accounts)[0m
 echo 8] Toggle Better Foliage [90m(Requires additional Resources)[0m
+echo 9] Open Latest Log
 echo [90mX] Exit ^| [R] Refresh[0m
 echo.
-choice /c 12345678XLER
+choice /c 123456789XLER
 if %errorlevel%==1 goto launch
 if %errorlevel%==2 goto expcfg
 if %errorlevel%==3 goto impcfg
@@ -284,10 +285,11 @@ if %errorlevel%==5 goto resetint
 if %errorlevel%==6 goto fullreset
 if %errorlevel%==7 goto justmultimc
 if %errorlevel%==8 goto betterf
-if %errorlevel%==9 goto exit
-if %errorlevel%==10 start https://mc.itcommand.net:8056
-if %errorlevel%==11 goto explorer
-if %errorlevel%==12 goto mainmenu
+if %errorlevel%==9 start "" "MultiMC\Instances\Friends N Such\.minecraft\logs\latest.log"
+if %errorlevel%==10 goto exit
+if %errorlevel%==11 start https://mc.itcommand.net:8056
+if %errorlevel%==12 goto explorer
+if %errorlevel%==13 goto mainmenu
 goto mainmenu
 
 
@@ -377,12 +379,14 @@ echo.
 echo ===============================================
 echo [0m1] Launch Exploring Instance
 echo 2] Import Config
-echo 3] Refresh Explorer Mods [90m(Force Update)0m
+echo 3] Refresh Explorer Mods [90m(Force Update)[0m
 echo 4] Toggle Better Foliage
+echo 5] Open Latest Log
 echo [90mX] Main Menu  ^|  [R] Refresh[0m
-choice /c 1234xr
+choice /c 12345xr
 if %errorlevel%==1 goto launchexp
 if %errorlevel%==2 goto importexp
+if %errorlevel%==5 notepad "MultiMC\Instances\FNS Exploring\.minecraft\logs\latest.log"
 if %errorlevel%==3 (
 	cls
 	taskkill /f /im javaw.exe >nul 2>nul
@@ -392,9 +396,12 @@ if %errorlevel%==3 (
 	goto setupexpmods
 )
 if %errorlevel%==4 goto 2betterfexp
-if %errorlevel%==5 goto mainmenu
-if %errorlevel%==6 goto explorer
+if %errorlevel%==6 goto mainmenu
+if %errorlevel%==7 goto explorer
+
 goto explorer
+
+ 
 
 :launchexp
 cls
@@ -403,7 +410,10 @@ echo MultiMC Version:
 call "MultiMC\MultiMC.exe" -V 
 timeout /t 2 >nul 2>nul
 echo [92mStarting Instance . . .[0m
-start /MIN "" "MultiMC\MultiMC.exe" -l "FNS Exploring"
+echo @echo off>MultiMC\QuickLaunchEXP.cmd"
+echo title MultiMC FNS Exploring Launcher>>MultiMC\QuickLaunchEXP.cmd"
+echo call "MultiMC\MultiMC.exe" -l "FNS Exploring">>MultiMC\QuickLaunchEXP.cmd"
+start /MIN "" "MultiMC\QuickLaunchEXP.cmd"
 timeout /t 5
 goto explorer
 
@@ -500,7 +510,7 @@ goto mainmenu
 :justmultimc
 cls
 echo Launching MultiMC by itself.
-"MultiMC\MultiMC.exe"
+start /MIN "" "MultiMC\MultiMC.exe"
 timeout /t 5
 goto mainmenu
 
@@ -581,7 +591,10 @@ echo MultiMC Version:
 call "MultiMC\MultiMC.exe" -V 
 timeout /t 2 >nul 2>nul
 echo [92mStarting Instance . . .[0m
-start /MIN "" "MultiMC\MultiMC.exe" -l "Friends N Such"
+echo @echo off>MultiMC\QuickLaunchFNS.cmd"
+echo title MultiMC FNS Launcher>>MultiMC\QuickLaunchFNS.cmd"
+echo call "MultiMC\MultiMC.exe" -l "Friends N Such">>MultiMC\QuickLaunchFNS.cmd"
+start /MIN "" "MultiMC\QuickLaunchFNS.cmd"
 timeout /t 5
 goto mainmenu
 
