@@ -193,7 +193,7 @@ echo [32m   `.:+syyyyyyyyyyyhyyso/-`
 echo [32m  oyyyhhyyyyyyyyyyyyhyyyyyys:     [92;7m Friends N Such Minecraft [0;90m
 echo [90m  hhh[32myyyyyyyyyyyyyyyyyyhhh[90mmdo     [90m[===  By  SystemInfo  ===][0m
 echo [90m  hhhyhh[32mdyyyyyyyyhyhhdd[90mddmddd     [0mVersion:  %ver% [[90m%status%[0m][90m
-echo [90m  hhyhhdhhh[32mhhhhhhddd[90mdmdddddd+     [0mServer:   mc.itcommand.net[90m
+echo [90m  hhyhhdhhh[32mhhhhhhddd[90mdmdddddd+     [0mServer:   play.itcommand.net[90m
 
 
 curl ftp://mc.itcommand.net:21/players.txt --user "mcplayers:mojang" -o players.txt >nul 2>nul
@@ -204,7 +204,7 @@ if %errorlevel%==0 (
 	echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo     [0mStatus:   [91mHost No Reply[90m
 	echo.>players.txt
 )
-curl -LJ https://api.mcsrvstat.us/2/mc.itcommand.net:25565 -o stat.json 2>nul
+curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net:25565 -o stat.json 2>nul
 if not "%errorlevel%"=="0" (
 	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
 	goto skipstatus
