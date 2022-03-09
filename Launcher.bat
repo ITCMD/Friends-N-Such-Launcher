@@ -59,7 +59,8 @@ if exist "Friends-N-Such-Mods-main\" rmdir /s /q "Friends-N-Such-Mods-main"
 echo [96mConfiguring Unzip Tool . . .[0m
 if not exist "7za.exe" curl -LJO -S https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe >nul 2>nul
 echo [96mDownloading latest modpack . . .[0m
-curl -LJO -S https://github.com/ITCMD/Friends-N-Such-Mods/archive/refs/heads/main.zip >nul 2>nul
+echo [97mThis will take some time.[0m
+curl -LJO -S https://github.com/ITCMD/Friends-N-Such-Mods/archive/refs/heads/main.zip
 echo [96mUnzipping . . .[0m
 7za.exe x Friends-N-Such-Mods-main.zip >nul
 if exist "Friends-N-Such-Mods-main\Prepare.bat" call "Friends-N-Such-Mods-main\Prepare.bat" "MultiMC\Instances\Friends N Such\.minecraft\"
@@ -274,9 +275,10 @@ echo 6] Full Reset
 echo 7] Open MultiMC menu [90m(Settings, accounts)[0m
 echo 8] Toggle Better Foliage [90m(Requires additional Resources)[0m
 echo 9] Open Latest Log
+echo H] Help Files
 echo [90mX] Exit ^| [R] Refresh[0m
 echo.
-choice /c 123456789XLER
+choice /c 123456789XLERH
 if %errorlevel%==1 goto launch
 if %errorlevel%==2 goto expcfg
 if %errorlevel%==3 goto impcfg
@@ -290,7 +292,25 @@ if %errorlevel%==10 goto exit
 if %errorlevel%==11 start https://mc.itcommand.net:8056
 if %errorlevel%==12 goto explorer
 if %errorlevel%==13 goto mainmenu
+if %errorlevel%==14 goto help
 goto mainmenu
+
+:help
+cls
+echo HELP Menu
+echo ========================================================================
+echo.
+echo 1] How to Update Forge
+echo More coming soon.
+echo X] Back to menu
+echo.
+choice /c 123456789X
+if %errorlevel%==1 (
+	start https://github.com/ITCMD/Friends-N-Such-Launcher/blob/main/Updating%%20Forge.pdf
+)
+goto mainmenu
+	
+
 
 
 :explorer
@@ -390,9 +410,10 @@ if %errorlevel%==5 notepad "MultiMC\Instances\FNS Exploring\.minecraft\logs\late
 if %errorlevel%==3 (
 	cls
 	taskkill /f /im javaw.exe >nul 2>nul
-	rmdir /s /q "MultiMC\Instances\FNS Explorer\mods"
-	mkdir "MultiMC\Instances\FNS Explorer\mods\"
-	cd "MultiMC\Instances\FNS Explorer\mods\"
+	rmdir /s /q "MultiMC\Instances\FNS Exploring\.minecraft\mods" 
+	mkdir "MultiMC\Instances\FNS Exploring\.minecraft\mods"
+	pause
+	cd "MultiMC\Instances\FNS Exploring\.minecraft\mods\"
 	goto setupexpmods
 )
 if %errorlevel%==4 goto 2betterfexp
@@ -470,11 +491,11 @@ goto explorer
 
 :2betterfexp
 cls
-if exist "MultiMC\Instances\FNS Explorer\.minecraft\mods\BetterFoliage*" (
+if exist "MultiMC\Instances\FNS Exploring\.minecraft\mods\BetterFoliage*" (
 	echo Mod is currently enabled.
 	echo Disable?
 	choice
-	if !errorlevel!==1 del /f /q "MultiMC\Instances\FNS Explorer\.minecraft\mods\BetterFoliage*"
+	if !errorlevel!==1 del /f /q "MultiMC\Instances\FNS Exploring\.minecraft\mods\BetterFoliage*"
 	goto explorer
 )
 echo Mod is currently Disabled.
@@ -482,7 +503,7 @@ echo Enable?
 choice
 if %errorlevel%==2 goto explorer
 curl -LJO %betterfoliageurl% >nul 2>nul
-move "BetterFoliage*" "MultiMC\Instances\FNS Explorer\.minecraft\mods\" >nul
+move "BetterFoliage*" "MultiMC\Instances\FNS Exploring\.minecraft\mods\" >nul
 echo [92mMod Enabled[0m
 pause
 goto explorer
