@@ -2,7 +2,7 @@
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
-set ver=1.9
+set ver=2.0
 set betterfoliageurl=https://media.forgecdn.net/files/3409/419/BetterFoliage-2.7.1-Forge-1.16.5.jar
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
 if /i "%~1"=="--Panel" start https://mc.itcommand.net:8056
