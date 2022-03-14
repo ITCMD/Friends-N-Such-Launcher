@@ -1,24 +1,12 @@
 @echo off
+:restartall
 if "%~1"=="Load" goto load
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
 set ver=2.0
 set betterfoliageurl=https://media.forgecdn.net/files/3409/419/BetterFoliage-2.7.1-Forge-1.16.5.jar
-if exist Load.bat (
-	attrib +h load.bat
-) Else (
-	echo ERROR: Load.bat not found.
-	pause
-	exit
-)
-if exist LoadingStar.exe (
-	attrib +h LoadingStar.exe
-) Else (
-	echo ERROR: LoadingStar.exe not found.
-	pause
-	exit
-)
+
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
 if /i "%~1"=="--Panel" start https://mc.itcommand.net:8056
 if not exist "MultiMC\Instances\Friends N Such\Friends-N-Such.Identifier" goto setup
@@ -30,6 +18,18 @@ if not %errorlevel%==0 (
 	echo Could not reach google.com.[0m
 	pause
 	exit
+)
+if exist Load.bat (
+	attrib +h load.bat
+) Else (
+	curl https://raw.githubusercontent.com/ITCMD/Friends-N-Such-Launcher/main/Load.bat -O >nul 2>nul
+	attrib +h Load.bat
+)
+if exist LoadingStar.exe (
+	attrib +h loadingstar.exe
+) Else (
+	curl https://raw.githubusercontent.com/ITCMD/Friends-N-Such-Launcher/main/LoadingStar.exe -O >nul 2>nul
+	attrib +h LoadingStar.exe
 )
 if exist "PingTest" del /f /q "PingTest"
 curl -LJO -s https://github.com/ITCMD/Friends-N-Such-Mods/raw/main/PingTest >nul
