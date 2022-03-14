@@ -1,13 +1,29 @@
 @echo off
+if "%~1"=="Load" goto load
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
 set ver=2.0
 set betterfoliageurl=https://media.forgecdn.net/files/3409/419/BetterFoliage-2.7.1-Forge-1.16.5.jar
+if exist Load.bat (
+	attrib +h load.bat
+) Else (
+	echo ERROR: Load.bat not found.
+	pause
+	exit
+)
+if exist LoadingStar.exe (
+	attrib +h LoadingStar.exe
+) Else (
+	echo ERROR: LoadingStar.exe not found.
+	pause
+	exit
+)
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
 if /i "%~1"=="--Panel" start https://mc.itcommand.net:8056
 if not exist "MultiMC\Instances\Friends N Such\Friends-N-Such.Identifier" goto setup
 if not exist "MultiMC\DidSetup.ini" goto :multisetup
+call :loading
 ping google.com -n 1 >nul
 if not %errorlevel%==0 (
 	echo [91mERROR: No internet connection[90m
@@ -32,7 +48,6 @@ curl -LJO -s https://github.com/ITCMD/Friends-N-Such-Mods/raw/main/ver.txt >nul
 find "[%ver%]" "ver.txt" >nul
 set uptodate=%errorlevel%
 if "%uptodate%"=="0" (
-	echo Friends-N-Such is up to date.
 	del /f /q ver.txt
 	goto mainmenu
 )
@@ -76,9 +91,27 @@ goto mainmenu
 
 
 
-
-
-
+:loading
+cls
+echo [0m========================================================================
+echo [32m            .-/ss+:.
+echo [32m        .:+shyyyyyyo/-`       
+echo [32m   `.:+syyyyyyyyyyyhyyso/-`       
+echo [32m  oyyyhhyyyyyyyyyyyyhyyyyyys:     [92;7m Friends N Such Minecraft [0;90m
+echo [90m  hhh[32myyyyyyyyyyyyyyyyyyhhh[90mmdo     
+echo [90m  hhhyhh[32mdyyyyyyyyhyhhdd[90mddmddd 
+echo [90m  hhyhhdhhh[32mhhhhhhddd[90mdmdddddd+ 
+echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo
+echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo         [32mQuerying Servers...
+echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+
+echo   oyyhhyhhyhyyyhhdhhhdddddhy/  
+echo    `./oyyyyhhyyhddddddhs+:`      
+echo        `.:oyyyyhddhy+:`       
+echo            `-/syo:.`` 
+echo [0m========================================================================
+echo.
+echo|set /p=.                            Loading . . .  
+exit /b
 
 :setup
 cls
@@ -183,8 +216,14 @@ timeout /t 5
 goto mainmenu
 
 
+
+
 :mainmenu
+call Loadingstar.exe --command "Load.bat" 
+for /f "tokens=*" %%A in (set.ini) do (set %%~A)
+del /f /q set.ini
 if exist 7za.exe del /f /q 7za.exe
+:mainmenuskipload
 cls
 title Friends N Such Minecraft Launcher
 echo ========================================================================
@@ -195,75 +234,13 @@ echo [32m  oyyyhhyyyyyyyyyyyyhyyyyyys:     [92;7m Friends N Such Minecraft [0
 echo [90m  hhh[32myyyyyyyyyyyyyyyyyyhhh[90mmdo     [90m[===  By  SystemInfo  ===][0m
 echo [90m  hhhyhh[32mdyyyyyyyyhyhhdd[90mddmddd     [0mVersion:  %ver% [[90m%status%[0m][90m
 echo [90m  hhyhhdhhh[32mhhhhhhddd[90mdmdddddd+     [0mServer:   play.itcommand.net[90m
-
-
-curl ftp://mc.itcommand.net:21/players.txt --user "mcplayers:mojang" -o players.txt >nul 2>nul
-if %errorlevel%==0 (
-	echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo     [0mStatus:   [32mHost Online[90m
-	curl ftp://mc.itcommand.net:21/explore/players.txt --user "mcplayers:mojang" -o exploreplayers.txt >nul 2>nul
-) ELSE (
-	echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo     [0mStatus:   [91mHost No Reply[90m
-	echo.>players.txt
-)
-curl -LJ https://api.mcsrvstat.us/2/play.itcommand.net:25565 -o stat.json 2>nul
-if not "%errorlevel%"=="0" (
-	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
-	goto skipstatus
-)
-find ",""online"":true,""" "stat.json" >nul 2>nul
-if %errorlevel%==0 (
-	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mPrimary:  [32mServer Online[90m
-) ELSE (
-	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mPrimary:  [91mServer Offline[90m
-	set offline=true
-)
-:skipstatus
-
-curl -LJ https://api.mcsrvstat.us/2/mc.itcommand.net:25567 -o stat2.json 2>nul
-if not "%errorlevel%"=="0" (
-	echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
-	goto skip2status
-)
-find ",""online"":true,""" "stat2.json" >nul 2>nul
-if %errorlevel%==0 (
-	echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+     [0mExplore:  [32mServer Online[90m
-) ELSE (
-	echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+     [0mExplore:  [91mServer Offline[90m
-	set expoffline=true
-)
-:skip2status
-del /f /q stat.json
-del /f /q stat2.json
-set players=
-set expplayers=
-if exist players.txt (
-	set count=0
-	for /f %%A in (players.txt) do (
-		if "!count!"=="0" (
-			set players=%%~A
-		) ELSE (
-			set players=!players!, %%~A
-		)
-		set /a count+=1
-	)
-)
-if exist exploreplayers.txt (
-	set count=0
-	for /f %%A in (exploreplayers.txt) do (
-		if "!count!"=="0" (
-			set expplayers=%%~A
-		) ELSE (
-			set expplayers=!expplayers!, %%~A
-		)
-		set /a count+=1
-	)
-)
-if exist players.txt del /f /q players.txt
+echo %statline1%
+echo %statline2%
+echo %statline3%
 echo   oyyhhyhhyhyyyhhdhhhdddddhy/     [0mPrimary Players: [7m!players![0;90m
 echo    `./oyyyyhhyyhddddddhs+:`       [0mExplore Players: [7m!expplayers![0;90m
 echo        `.:oyyyyhddhy+:`       
 echo            `-/syo:.``             Main Menu[0m
-echo.[0m
 echo ========================================================================
 echo 1] Launch Game
 echo E] Open FNS Explorer Menu [96m(New^^!)[0m
@@ -291,7 +268,10 @@ if %errorlevel%==9 start "" "MultiMC\Instances\Friends N Such\.minecraft\logs\la
 if %errorlevel%==10 goto exit
 if %errorlevel%==11 start https://mc.itcommand.net:8056
 if %errorlevel%==12 goto explorer
-if %errorlevel%==13 goto mainmenu
+if %errorlevel%==13 (
+		call :loading
+		goto mainmenu
+)
 if %errorlevel%==14 goto help
 goto mainmenu
 
@@ -301,7 +281,7 @@ echo HELP Menu
 echo ========================================================================
 echo.
 echo 1] How to Update Forge
-echo More coming soon.
+echo 2] More coming soon.
 echo X] Back to menu
 echo.
 choice /c 123456789X
@@ -311,8 +291,29 @@ if %errorlevel%==1 (
 goto mainmenu
 	
 
-
-
+:refreshexplorer
+cls
+echo [0m========================================================================
+echo [96m            .-/ss+:.
+echo [96m        .:+shyyyyyyo/-`       
+echo [96m   `.:+syyyyyyyyyyyhyyso/-`       
+echo [96m  oyyyhhyyyyyyyyyyyyhyyyyyys:     [96;7m Friends N Such Minecraft [0;90m
+echo [90m  hhh[96myyyyyyyyyyyyyyyyyyhhh[90mmdo     
+echo [90m  hhhyhh[96mdyyyyyyyyhyhhdd[90mddmddd 
+echo [90m  hhyhhdhhh[96mhhhhhhddd[90mdmdddddd+ 
+echo [90m  yyyyhdddhhh[96mhhddd[90mddddmdhdddo
+echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo         [96mQuerying Servers...
+echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+
+echo   oyyhhyhhyhyyyhhdhhhdddddhy/  
+echo    `./oyyyyhhyyhddddddhs+:`      
+echo        `.:oyyyyhddhy+:`       
+echo            `-/syo:.`` 
+echo [0m========================================================================
+echo.
+echo|set /p=.                            Loading . . .  
+call Loadingstar.exe --command "Load.bat" 
+for /f "tokens=*" %%A in (set.ini) do (set %%~A)
+del /f /q set.ini
 :explorer
 cls
 if not exist "MultiMC\Instances\FNS Exploring\.minecraft" goto setexpl
@@ -327,76 +328,15 @@ echo [96m  oyyyhhyyyyyyyyyyyyhyyyyyys:     [96;7m Friends N Such Minecraft [0
 echo [90m  hhh[96myyyyyyyyyyyyyyyyyyhhh[90mmdo     [90m[===  By  SystemInfo  ===][0m
 echo [90m  hhhyhh[96mdyyyyyyyyhyhhdd[90mddmddd     [0mVersion:  %ver% [[90m%status%[0m][90m
 echo [90m  hhyhhdhhh[96mhhhhhhddd[90mdmdddddd+     [0mServer:   mc.itcommand.net[90m
-
-
-curl ftp://mc.itcommand.net:21/players.txt --user "mcplayers:mojang" -o players.txt >nul 2>nul
-if %errorlevel%==0 (
-	echo [90m  yyyyhdddhhh[96mhhddd[90mddddmdhdddo     [0mStatus:   [92mHost Online[90m
-	curl ftp://mc.itcommand.net:21/explore/players.txt --user "mcplayers:mojang" -o exploreplayers.txt >nul 2>nul
-) ELSE (
-	echo [90m  yyyyhdddhhh[96mhhddd[90mddddmdhdddo     [0mStatus:   [91mHost No Reply[90m
-	echo.>players.txt
-)
-curl -LJ https://api.mcsrvstat.us/2/mc.itcommand.net:25565 -o stat.json 2>nul
-if not "%errorlevel%"=="0" (
-	echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
-	goto eskipstatus
-)
-find ",""online"":true,""" "stat.json" >nul 2>nul
-if %errorlevel%==0 (
-	echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo     [0mPrimary:  [92mServer Online[90m
-) ELSE (
-	echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo     [0mPrimary:  [91mServer Offline[90m
-	set offline=true
-)
-:eskipstatus
-
-curl -LJ https://api.mcsrvstat.us/2/mc.itcommand.net:25567 -o stat2.json 2>nul
-if not "%errorlevel%"=="0" (
-	echo [90m  hhyyyhyhhhmh[96mhhd[90mhhddhhdhhhdo     [0mStatus:   Unknown
-	goto eskip2status
-)
-find ",""online"":true,""" "stat2.json" >nul 2>nul
-if %errorlevel%==0 (
-	echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+     [0mExplore:  [92mServer Online[90m
-) ELSE (
-	echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+     [0mExplore:  [91mServer Offline[90m
-	set expoffline=true
-)
-:eskip2status
-del /f /q stat.json
-del /f /q stat2.json
-if exist players.txt (
-	set count=0
-	for /f %%A in (players.txt) do (
-		if "!count!"=="0" (
-			set players=%%~A
-		) ELSE (
-			set players=!players!, %%~A
-		)
-		set /a count+=1
-	)
-)
-if exist exploreplayers.txt (
-	set count=0
-	for /f %%A in (exploreplayers.txt) do (
-		if "!count!"=="0" (
-			set expplayers=%%~A
-		) ELSE (
-			set expplayers=!expplayers!, %%~A
-		)
-		set /a count+=1
-	)
-)
-if exist players.txt del /f /q players.txt
+echo %statline1b%
+echo %statline2b%
+echo %statline3%
 if exist exploreplayers.txt del /f /q exploreplayers.txt
 echo   oyyhhyhhyhyyyhhdhhhdddddhy/     [0mPrimary Players:  [7m!players![0;90m
 echo    `./oyyyyhhyyhddddddhs+:`       [0mExplore Players:  [7m!expplayers![0;90m
 echo        `.:oyyyyhddhy+:`     
 echo            `-/syo:.``             Explorer Menu[0m  Port: 25567
-echo.
-echo.
-echo ===============================================
+echo [0m========================================================================
 echo [0m1] Launch Exploring Instance
 echo 2] Import Config
 echo 3] Refresh Explorer Mods [90m(Force Update)[0m
@@ -417,12 +357,14 @@ if %errorlevel%==3 (
 	goto setupexpmods
 )
 if %errorlevel%==4 goto 2betterfexp
-if %errorlevel%==6 goto mainmenu
-if %errorlevel%==7 goto explorer
+if %errorlevel%==6 goto :mainmenuskipload
+if %errorlevel%==7 goto refreshexplorer
 
 goto explorer
 
- 
+
+
+rem this has to be here because windows.
 
 :launchexp
 cls
