@@ -4,14 +4,14 @@ if "%~1"=="Load" goto load
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
-set ver=2.0
+set ver=3.0
 set betterfoliageurl=https://media.forgecdn.net/files/3409/419/BetterFoliage-2.7.1-Forge-1.16.5.jar
 
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
 if /i "%~1"=="--Panel" start https://mc.itcommand.net:8056
 if not exist "MultiMC\Instances\Friends N Such\Friends-N-Such.Identifier" goto setup
 if not exist "MultiMC\DidSetup.ini" goto :multisetup
-call :loading
+call :startupscreen
 ping google.com -n 1 >nul
 if not %errorlevel%==0 (
 	echo [91mERROR: No internet connection[90m
@@ -32,7 +32,7 @@ if exist LoadingStar.exe (
 	attrib +h LoadingStar.exe
 )
 if exist "PingTest" del /f /q "PingTest"
-curl -LJO -s https://github.com/ITCMD/Friends-N-Such-Mods/raw/main/PingTest >nul
+curl -LJO -s https://raw.githubusercontent.com/ITCMD/Friends-N-Such-Launcher/main/PingTest >nul
 find "[Success]" "PingTest" >nul
 if not %errorlevel%==0 (
 	echo [91mERROR: Connection Failed for unknown reason. Contact Lucas.[90m
@@ -42,20 +42,34 @@ if not %errorlevel%==0 (
 	pause
 	goto mainmenu
 )
-del /f /q "PingTest" 2>nul
+if exist PingTest del /f /q "PingTest" 2>nul
+curl ftp://mc.itcommand.net:21/PingTest --user "mcupdate:MCUpdate@32" -o "PingTest" --silent
+find "[Success]" "PingTest" >nul
+if not %errorlevel%==0 (
+	echo [91mERROR: Update FTP Server Offline. Please Contact Lucas.[90m
+	echo [91mERROR: FNS may be out of date.[90m
+	echo PingTest to local FTP File Failed.[0m
+	del /f /q PingTest 2>nul
+	set status=Unknown
+	pause
+	goto mainmenu
+)
+if exist PingTest del /f /q "PingTest" 2>nul
 if exist ver.txt del /f /q "ver.txt"
-curl -LJO -s https://github.com/ITCMD/Friends-N-Such-Mods/raw/main/ver.txt >nul
+curl -LJO -s https://raw.githubusercontent.com/ITCMD/Friends-N-Such-Launcher/main/ver.txt >nul
 find "[%ver%]" "ver.txt" >nul
 set uptodate=%errorlevel%
 if "%uptodate%"=="0" (
 	del /f /q ver.txt
-	goto mainmenu
+	goto checkedforlauncherupdates
 )
-echo Update Available. Downloading . . .
+echo Launcher update Available. Downloading . . .
 del /f /q ver.txt
 timeout /t 3 >nul
 echo [96mUpdating Launcher . . .[0m
+rem downloads updated version
 curl https://raw.githubusercontent.com/ITCMD/Friends-N-Such-Launcher/main/Launcher.bat -o LauncherUpdate.dat >nul 2>nul
+rem creates temporary program to replace old launcher and run it.
 echo ^@echo off >UpdateLauncher.cmd
 echo find "title Friends N Such Minecraft Launcher" "LauncherUpdate.dat" ^>nul 2^>nul >>UpdateLauncher.cmd
 echo if not %%errorlevel%%==0 echo Launcher Update Failed ^& pause ^& exit >>UpdateLauncher.cmd
@@ -65,31 +79,82 @@ echo "%~nx0" "--ContinueUpdate" >>UpdateLauncher.cmd
 updateLauncher.cmd
 :ContinueUpdate
 if exist updateLauncher.cmd del /f /q updateLauncher.cmd
-echo [96mClosing any open Javaw.exe Windows . . .[0m
-taskkill /f /im javaw.exe >nul 2>nul
-echo [96mUpdating Friends N Such . . .[0m
-echo [96mForcing Remap . . .[0m
-if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
-if exist "Friends-N-Such-Mods-main\" rmdir /s /q "Friends-N-Such-Mods-main"
-echo [96mConfiguring Unzip Tool . . .[0m
-if not exist "7za.exe" curl -LJO -S https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe >nul 2>nul
-echo [96mDownloading latest modpack . . .[0m
-echo [97mThis will take some time.[0m
-curl -LJO -S https://github.com/ITCMD/Friends-N-Such-Mods/archive/refs/heads/main.zip
-echo [96mUnzipping . . .[0m
-7za.exe x Friends-N-Such-Mods-main.zip >nul
-if exist "Friends-N-Such-Mods-main\Prepare.bat" call "Friends-N-Such-Mods-main\Prepare.bat" "MultiMC\Instances\Friends N Such\.minecraft\"
-echo [96mCopying Files . . .[0m
-XCOPY "Friends-N-Such-Mods-main\*" "MultiMC\Instances\Friends N Such\.minecraft\" /s /i /y >nul
-echo [96mCleaning up . . .[0m
-if exist "Friends-N-Such-Mods-main\Cleanup.bat" call "Friends-N-Such-Mods-main\Cleanup.bat" "MultiMC\Instances\Friends N Such\.minecrat\"
-if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
-if exist "Friends-N-Such-Mods-main\" rmdir /s /q "Friends-N-Such-Mods-main"
-echo [92mDone![0m
-timeout /t 3 >nul
+rem it comes here after it updates the launcher file.
+:checkedforlauncherupdates
+echo [90mDownloading Client Mod List...
+set update=false
+rem downloads server's copy of client list
+call :ftpls mc.itcommand.net mcupdate MCUpdate@32 /ExplorerClient
+rem checks if client has files missing in server's copy. Deletes them.
+for /f "tokens=*" %%A in ('dir /b "MultiMC\Instances\FNS Exploring\.minecraft\mods\"') do (
+	find "%%~A" "%output%" >nul
+	if not !errorlevel!==0 (
+		echo %%~A|find /i "foliage">nul
+		if not !errorlevel!==0 (
+			echo Deleting Outdated Mod: %%~A
+			del /f /q "MultiMC\Instances\FNS Exploring\.minecraft\mods\%%~A"
+			set update=true
+		)
+	)
+)
+rem checks if client is missing files in server's copy. Downloads them.		
+for /f "tokens=* usebackq" %%A in ("%output%") do (
+	if not exist "MultiMC\Instances\FNS Exploring\.minecraft\mods\%%~A" (
+		echo Downloading New File: %%~A...
+		curl ftp://mc.itcommand.net:21/ExplorerClient/%%~A --user "mcupdate:MCUpdate@32" -o "MultiMC\Instances\FNS Exploring\.minecraft\mods\%%~A" --progress-bar
+		set update=true
+	)
+)
+rem downloads server's copy of client list
+call :ftpls mc.itcommand.net mcupdate MCUpdate@32 /PrimaryClient
+rem checks if client has files missing in server's copy. Deletes them.
+for /f "tokens=*" %%A in ('dir /b "MultiMC\Instances\Friends N Such\.minecraft\mods"') do (
+	find "%%~A" "%output%" >nul
+	if not !errorlevel!==0 (
+		echo %%~A|find /i "foliage">nul
+		if not !errorlevel!==0 (
+			echo Deleting Outdated Mod: %%~A
+			del /f /q "MultiMC\Instances\Friends N Such\.minecraft\mods\%%~A"
+			set update=true
+		)
+	)
+)
+rem checks if client is missing files in server's copy. Downloads them.		
+for /f "tokens=* usebackq" %%A in ("%output%") do (
+	if not exist "MultiMC\Instances\Friends N Such\.minecraft\mods\%%~A" (
+		echo Downloading New File: %%~A...
+		curl ftp://mc.itcommand.net:21/PrimaryClient/%%~A --user "mcupdate:MCUpdate@32" -o "MultiMC\Instances\Friends N Such\.minecraft\mods\%%~A" --progress-bar
+		set update=true
+	)
+)
+if "%update%"=="true" (
+	echo [96mUpdate complete.[0m
+	timeout /t 3 /nobreak >nul
+) ELSE (
+	echo [96mNo updates available.[0m
+	timeout /t 1 /nobreak >nul
+)
 goto mainmenu
 
-
+:startupscreen
+cls
+echo [0m========================================================================
+echo [32m            .-/ss+:.
+echo [32m        .:+shyyyyyyo/-`       
+echo [32m   `.:+syyyyyyyyyyyhyyso/-`       
+echo [32m  oyyyhhyyyyyyyyyyyyhyyyyyys:     [92;7m Friends N Such Minecraft [0;90m
+echo [90m  hhh[32myyyyyyyyyyyyyyyyyyhhh[90mmdo     
+echo [90m  hhhyhh[32mdyyyyyyyyhyhhdd[90mddmddd 
+echo [90m  hhyhhdhhh[32mhhhhhhddd[90mdmdddddd+ 
+echo [90m  yyyyhdddhhh[32mhhddd[90mddddmdhdddo
+echo [90m  hhyyyhyhhhmh[32mhhd[90mhhddhhdhhhdo       [32mChecking for Updates...
+echo [90m  hhhyyyhyyhyhyhdhdddhdhddhh+
+echo   oyyhhyhhyhyyyhhdhhhdddddhy/  
+echo    `./oyyyyhhyyhddddddhs+:`      
+echo        `.:oyyyyhddhy+:`       
+echo            `-/syo:.`` 
+echo [0m========================================================================
+exit /b
 
 :loading
 cls
@@ -117,7 +182,6 @@ exit /b
 cls
 echo [92mPerforming First Time Setup[0m
 echo.
-:newinstance
 ping google.com -n 1 >nul
 if not %errorlevel%==0 (
 	echo [91mERROR: No internet connection.[90m
@@ -125,8 +189,21 @@ if not %errorlevel%==0 (
 	pause
 	exit
 )
+:java
+if exist "C:\Program Files\Java" goto skipjava
+echo You do not appear to have the x64 Java Runtime Environment installed.
+echo It is required to run Minecraft. Would you like to Install it now?
+choice
+if %errorlevel%==2 goto skipjava
+echo Downloading Java 8 . . .
+curl -L https://javadl.oracle.com/webapps/download/AutoDL?BundleId=245807_df5ad55fdd604472a86a45a217032c7d -o "java.exe" --progress-bar
+echo Installing Java 8 . . .
+call java.exe /s SPONSORS=0
+echo Install Complete.
+timeout /t 1 /nobreak >nul
+:skipjava
 if exist "PingTest" del /f /q "PingTest"
-curl -LJO -s https://github.com/ITCMD/Friends-N-Such-Mods/raw/main/PingTest >nul
+curl -LJO -s https://raw.githubusercontent.com/ITCMD/Friends-N-Such-Launcher/main/PingTest >nul
 find "[Success]" "PingTest" >nul
 if not %errorlevel%==0 (
 	echo [91mERROR: Download Failed for unknown reason. Contact Lucas.[90m
@@ -136,43 +213,31 @@ if not %errorlevel%==0 (
 	exit
 )
 if exist "PingTest" del /f /q "PingTest"
+curl ftp://mc.itcommand.net:21/PingTest --user "mcupdate:MCUpdate@32" -o "PingTest" --silent
+find "[Success]" "PingTest" >nul
+if not %errorlevel%==0 (
+	echo [91mERROR: Update FTP Server Offline. Please Contact Lucas.[90m
+	echo PingTest to local FTP File Failed.[0m
+	del /f /q PingTest 2>nul
+	set status=Unknown
+	pause
+	exit
+)
+if exist PingTest del /f /q "PingTest"
 echo [96mConfiguring Unzip Tool . . .[0m
 if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe 2>nul
 if exist "MultiMC\MultiMC.exe" goto SkipMMC
 echo [96mDownloading MultiMC . . .[0m
-curl -LJO -s https://files.multimc.org/downloads/mmc-stable-win32.zip >nul
+curl -LJO -s https://files.multimc.org/downloads/mmc-stable-win32.zip --progress-bar
 echo [96mExtracting . . .[0m
 call 7za.exe x mmc-stable-win32.zip >nul
 md MultiMC\Instances\
 :SkipMMC
-if exist "MultiMC\Instances\Friends N Such" (
-	echo this will delete your current copy of Friends N Such.
-	echo Continue?
-	choice
-	if !errorlevel!==2 exit
-	rmdir /s /q "MultiMC\Instances\Friends N Such"
-)
-echo [96mDownloading and Creating Instance . . .[0m
-curl -LJO -s https://github.com/ITCMD/Friends-N-Such-Launcher/raw/main/LatestInstall.zip >nul
+echo [96mDownloading and Creating Instances . . .[0m
+curl ftp://mc.itcommand.net:21/LatestInstall.zip --user "mcupdate:MCUpdate@32" -o "LatestInstall.zip" --progress-bar
 cd MultiMC\Instances
 call ..\..\7za.exe x ..\..\LatestInstall.zip >nul 2>nul
 cd ..\..
-echo [96mDownloading Mods and other Files . . .[0m
-if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
-if exist "Friends-N-Such-Mods-main\" rmdir /s /q "Friends-N-Such-Mods-main"
-echo [96mConfiguring Unzip Tool . . .[0m
-if not exist "7za.exe" curl -LJO -S https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe >nul 2>nul
-echo [96mDownloading latest modpack . . .[0m
-curl -LJO -S https://github.com/ITCMD/Friends-N-Such-Mods/archive/refs/heads/main.zip >nul 2>nul
-echo [96mUnzipping . . .[0m
-7za.exe x Friends-N-Such-Mods-main.zip >nul 2>nul
-if exist "Friends-N-Such-Mods-main\Prepare.bat" call "Friends-N-Such-Mods-main\Prepare.bat" "MultiMC\Instances\Friends N Such\.minecraft\"
-echo [96mCopying Files . . .[0m
-XCOPY "Friends-N-Such-Mods-main\*" "MultiMC\Instances\Friends N Such\.minecraft\" /s /i /y >nul 2>nul
-echo [96mCleaning up . . .[0m
-if exist "Friends-N-Such-Mods-main\Cleanup.bat" call "Friends-N-Such-Mods-main\Cleanup.bat" "MultiMC\Instances\Friends N Such\.minecrat\"
-if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
-if exist "Friends-N-Such-Mods-main\" rmdir /s /q "Friends-N-Such-Mods-main"
 echo [92mCleaning up . . .[0m
 del /f /q LatestInstall.zip
 del /f /q mmc-stable-win32.zip
@@ -192,7 +257,7 @@ echo.
 echo [92mJava[0m
 echo MultiMC Will launch now. It will ask you to select a java path.
 echo [4mSelect a x64 Java install[0m, not one in Program Files(x86).
-echo If you do not have x64 Java installed, close this and install it now.
+echo If you do not have x64 Java installed, Install it BEFORE pressing any key.
 echo.
 echo [92mMemory[0m
 echo By Default, MultiMC only provides Minecraft with 1GB of RAM (1024 Mb).
@@ -208,17 +273,22 @@ echo.
 echo Once you have completed these steps, close MultiMC and return here.
 pause
 echo.>"MultiMC\DidSetup.ini"
-call "MultiMC\MultiMC.exe"
+call "MultiMC\MultiMC.exe" >nul 2>nul
 cls
 echo.
 echo You finished the setup. You can change these settings later form the main menu.
+echo.
+echo FNS will now download the latest modpacks.
 timeout /t 5
-goto mainmenu
+endlocal
+goto restartall
 
 
 
 
 :mainmenu
+cls
+call :loading
 call Loadingstar.exe --command "Load.bat" 
 for /f "tokens=*" %%A in (set.ini) do (set %%~A)
 del /f /q set.ini
@@ -246,9 +316,9 @@ echo 1] Launch Game
 echo E] Open FNS Explorer Menu [96m(New^^!)[0m
 echo 2] Export Config [90m(Sensitivity, graphics, shader settings)[0m
 echo 3] Import Config
-echo 4] Reset Mods [90m(Force Update)[0m
-echo 5] Reset Instance
-echo 6] Full Reset
+echo 4] Reset Mods (Re-Downloads All Mods)
+echo 5] Reset Instances (Removes all Instances and Config).
+echo 6] Full Reset (Reinstalls MultiMC and Instances / Config).
 echo 7] Open MultiMC menu [90m(Settings, accounts)[0m
 echo 8] Toggle Better Foliage [90m(Requires additional Resources)[0m
 echo 9] Open Latest Log
@@ -316,7 +386,6 @@ for /f "tokens=*" %%A in (set.ini) do (set %%~A)
 del /f /q set.ini
 :explorer
 cls
-if not exist "MultiMC\Instances\FNS Exploring\.minecraft" goto setexpl
 if exist 7za.exe del /f /q 7za.exe
 cls
 title Friends N Such Minecraft Launcher
@@ -339,7 +408,7 @@ echo            `-/syo:.``             Explorer Menu[0m  Port: 25567
 echo [0m========================================================================
 echo [0m1] Launch Exploring Instance
 echo 2] Import Config
-echo 3] Refresh Explorer Mods [90m(Force Update)[0m
+echo 3] Reset all Mods
 echo 4] Toggle Better Foliage
 echo 5] Open Latest Log
 echo [90mX] Main Menu  ^|  [R] Refresh[0m
@@ -352,9 +421,10 @@ if %errorlevel%==3 (
 	taskkill /f /im javaw.exe >nul 2>nul
 	rmdir /s /q "MultiMC\Instances\FNS Exploring\.minecraft\mods" 
 	mkdir "MultiMC\Instances\FNS Exploring\.minecraft\mods"
-	pause
-	cd "MultiMC\Instances\FNS Exploring\.minecraft\mods\"
-	goto setupexpmods
+	rmdir /s /q "MultiMC\Instances\FNS Exploring\.minecraft\config" 
+	mkdir "MultiMC\Instances\FNS Exploring\.minecraft\config"
+	endlocal
+	goto restartall
 )
 if %errorlevel%==4 goto 2betterfexp
 if %errorlevel%==6 goto :mainmenuskipload
@@ -405,29 +475,7 @@ rmdir /s /q Confg
 pause
 goto explorer
 
-:setexpl
-cls
-cd MultiMC\Instances
-echo [96mConfiguring Unzip Tool . . .[0m
-if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe 2>nul >nul
-echo [96mDownloading Instance . . .[0m
-curl -LJO https://github.com/ITCMD/Friends-N-Such-Launcher/raw/main/ExplorerInstance.zip >nul 2>nul
-echo [96m Unzipping . . .[0m
-7za x ExplorerInstance.zip >nul
-del /f /q ExplorerInstance.zip
-move "7za.exe" "FNS Exploring\.minecraft\mods\" >nul
-cd "FNS Exploring\.minecraft\mods\"
 
-:setupexpmods
-if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe 2>nul >nul
-echo [96mDownloading Mods . . .[0m
-echo [90mThis may take several minutes . . .[0m
-curl ftp://mc.itcommand.net:21/explore/ExplorerMods.zip --user "mcplayers:mojang" -o ExplorerMods.zip
-7za x ExplorerMods.zip >nul
-del /f /q 7za.exe
-del /f /q ExplorerMods.zip
-cd ..\..\..\..\..
-goto explorer
 
 
 
@@ -480,6 +528,9 @@ goto mainmenu
 
 
 :resetint
+cls
+echo This will reset both the Primary and Explorer server's instances.
+echo You will lose any config you have saved.
 echo Are you sure?
 choice
 if %errorlevel%==2 goto mainmenu
@@ -487,7 +538,8 @@ cls
 echo [96mResetting Instance . . .
 taskkill /f /im javaw.exe >nul 2>nul
 rmdir /s /q "MultiMC\Instances\Friends N Such"
-goto newinstance
+rmdir /s /q "MultiMC\Instances\FNS Exploring"
+goto :SkipMMC
 
 
 :expcfg
@@ -566,26 +618,11 @@ goto mainmenu
 :resmods
 cls
 echo [92mResetting mods . . .[0m
-del /f /q "MultiMC\Instances\Friends N Such\.minecraft\mods\*.*"
-echo [96mForcing Remap . . .[0m
-if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
-if exist "Friends-N-Such-Mods-main\" rmdir /s /q "Friends-N-Such-Mods-main"
-echo [96mConfiguring Unzip Tool . . .[0m
-if not exist "7za.exe" curl -LJO -S https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe >nul 2>nul
-echo [96mDownloading latest modpack . . .[0m
-curl -LJO -S https://github.com/ITCMD/Friends-N-Such-Mods/archive/refs/heads/main.zip >nul 2>nul
-echo [96mUnzipping . . .[0m
-7za.exe x Friends-N-Such-Mods-main.zip >nul
-if exist "Friends-N-Such-Mods-main\Prepare.bat" call "Friends-N-Such-Mods-main\Prepare.bat" "MultiMC\Instances\Friends N Such\.minecraft\"
-echo [96mCopying Files . . .[0m
-XCOPY "Friends-N-Such-Mods-main\*" "MultiMC\Instances\Friends N Such\.minecraft\" /s /i /y
-echo [96mCleaning up . . .[0m
-if exist "Friends-N-Such-Mods-main\Cleanup.bat" call "Friends-N-Such-Mods-main\Cleanup.bat" "MultiMC\Instances\Friends N Such\.minecrat\"
-if exist Friends-N-Such-Mods-main.zip del /f /q Friends-N-Such-Mods-main.zip
-if exist "Friends-N-Such-Mods-main\" rmdir /s /q "Friends-N-Such-Mods-main"
-echo [92mDone![0m
-timeout /t 3 >nul
-goto mainmenu
+del /f /q "MultiMC\Instances\Friends N Such\.minecraft\mods\*"
+timeout /t 2 >nul
+endlocal
+goto restartall
+
 
 :fullreset
 cls
@@ -608,7 +645,26 @@ timeout /t 2 >nul
 goto setup
 
 
-
+:ftpls
+set session=%random%%random%%random%
+rem USAGE: call with 4 parameters
+rem ftpls hostname USER PASS path/on/remote/machine
+set "script=%TEMP%\ftpscript%session%.txt"
+set "output=%TEMP%\ftplist%session%.txt"
+set "host=%1"
+set "user=%2"
+set "pass=%3"
+set "dir=%4"
+>  "%script%" echo open %host%
+>> "%script%" echo user %user%
+>> "%script%" echo %pass%
+>> "%script%" echo cd %dir%
+>> "%script%" echo ls * %output%
+>> "%script%" echo bye
+ftp -n -s:"%script%" >nul
+rem modify "skip" and "tokens" to select the right lines and columns
+del "%script%"
+exit /b
 
 
 
