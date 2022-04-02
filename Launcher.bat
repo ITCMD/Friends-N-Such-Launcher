@@ -189,6 +189,29 @@ if not %errorlevel%==0 (
 	pause
 	exit
 )
+curl -LJO -s https://raw.githubusercontent.com/ITCMD/Friends-N-Such-Launcher/main/ver.txt >nul
+find "[%ver%]" "ver.txt" >nul
+set uptodate=%errorlevel%
+if "%uptodate%"=="0" (
+	del /f /q ver.txt
+	goto ContinueSetup
+)
+echo Launcher update Available. Downloading . . .
+del /f /q ver.txt
+timeout /t 3 >nul
+echo [96mUpdating Launcher . . .[0m
+rem downloads updated version
+curl https://raw.githubusercontent.com/ITCMD/Friends-N-Such-Launcher/main/Launcher.bat -o LauncherUpdate.dat >nul 2>nul
+rem creates temporary program to replace old launcher and run it.
+echo ^@echo off >UpdateLauncher.cmd
+echo find "title Friends N Such Minecraft Launcher" "LauncherUpdate.dat" ^>nul 2^>nul >>UpdateLauncher.cmd
+echo if not %%errorlevel%%==0 echo Launcher Update Failed ^& pause ^& exit >>UpdateLauncher.cmd
+echo del /f /q "%~nx0" >>UpdateLauncher.cmd
+echo ren "LauncherUpdate.dat" "%~nx0" >>UpdateLauncher.cmd
+echo "%~nx0" "--ContinueSetup" >>UpdateLauncher.cmd
+updateLauncher.cmd
+:ContinueSetup
+if exist updateLauncher.cmd del /f /q updateLauncher.cmd
 :java
 if exist "C:\Program Files\Java" goto skipjava
 echo You do not appear to have the x64 Java Runtime Environment installed.
@@ -228,7 +251,7 @@ echo [96mConfiguring Unzip Tool . . .[0m
 if not exist "7za.exe" curl -LJO https://github.com/ITCMD/ITCMD-STORAGE/raw/master/7za.exe 2>nul
 if exist "MultiMC\MultiMC.exe" goto SkipMMC
 echo [96mDownloading MultiMC . . .[0m
-curl -LJO -s https://files.multimc.org/downloads/mmc-stable-win32.zip --progress-bar
+curl -LJO https://files.multimc.org/downloads/mmc-stable-win32.zip --progress-bar
 echo [96mExtracting . . .[0m
 call 7za.exe x mmc-stable-win32.zip >nul
 md MultiMC\Instances\
