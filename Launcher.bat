@@ -1,14 +1,14 @@
 @echo off
 :restartall
+if not exist 
 if "%~1"=="Load" goto load
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
-set ver=3.0
+set ver=4.0
 set betterfoliageurl=https://media.forgecdn.net/files/3409/419/BetterFoliage-2.7.1-Forge-1.16.5.jar
-
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
-if /i "%~1"=="--Panel" start https://mc.itcommand.net:8056
+if /i "%~1"=="--Panel" start https://mc.itcommand.net:8443
 if not exist "MultiMC\Instances\Friends N Such\Friends-N-Such.Identifier" goto setup
 if not exist "MultiMC\DidSetup.ini" goto :multisetup
 call :startupscreen
@@ -81,6 +81,8 @@ updateLauncher.cmd
 if exist updateLauncher.cmd del /f /q updateLauncher.cmd
 rem it comes here after it updates the launcher file.
 :checkedforlauncherupdates
+echo [90mGetting Latest mmc-pack.json file...
+if exist "MultiMC\Instances\Friends N Such\" curl ftp://mc.itcommand.net:21/Primary-mmc-pack.json --user "mcupdate:MCUpdate@32" -o "MultiMC\Instances\Friends N Such\mmc-pack.json" --progress-bar
 echo [90mDownloading Client Mod List...
 set update=false
 rem downloads server's copy of client list
@@ -343,7 +345,7 @@ echo 4] Reset Mods (Re-Downloads All Mods)
 echo 5] Reset Instances (Removes all Instances and Config).
 echo 6] Full Reset (Reinstalls MultiMC and Instances / Config).
 echo 7] Open MultiMC menu [90m(Settings, accounts)[0m
-echo 8] Toggle Better Foliage [90m(Requires additional Resources)[0m
+echo 8] [96mToggle Better Foliage [90m(Unavailable for 1.18.2)[0m
 echo 9] Open Latest Log
 echo H] Help Files
 echo [90mX] Exit ^| [R] Refresh[0m
@@ -356,7 +358,6 @@ if %errorlevel%==4 goto resmods
 if %errorlevel%==5 goto resetint
 if %errorlevel%==6 goto fullreset
 if %errorlevel%==7 goto justmultimc
-if %errorlevel%==8 goto betterf
 if %errorlevel%==9 start "" "MultiMC\Instances\Friends N Such\.minecraft\logs\latest.log"
 if %errorlevel%==10 goto exit
 if %errorlevel%==11 start https://mc.itcommand.net:8056
