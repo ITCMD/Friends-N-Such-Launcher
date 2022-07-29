@@ -1,11 +1,11 @@
 @echo off
 :restartall
-if not exist 
 if "%~1"=="Load" goto load
 title Friends N Such Minecraft Launcher
 setlocal EnableDelayedExpansion
 set status=Up To Date
 set ver=4.0
+set fullreset=1
 set betterfoliageurl=https://media.forgecdn.net/files/3409/419/BetterFoliage-2.7.1-Forge-1.16.5.jar
 if "%~1"=="--ContinueUpdate" goto :ContinueUpdate
 if /i "%~1"=="--Panel" start https://mc.itcommand.net:8443
@@ -81,9 +81,10 @@ updateLauncher.cmd
 if exist updateLauncher.cmd del /f /q updateLauncher.cmd
 rem it comes here after it updates the launcher file.
 :checkedforlauncherupdates
+if not exist "MultiMC\Instances\Friends N Such\Update.%fullreset%.latest" goto mustreset
 echo [90mGetting Latest mmc-pack.json file...
-if exist "MultiMC\Instances\Friends N Such\" curl ftp://mc.itcommand.net:21/Primary-mmc-pack.json --user "mcupdate:MCUpdate@32" -o "MultiMC\Instances\Friends N Such\mmc-pack.json" --progress-bar
-echo [90mDownloading Client Mod List...
+if exist "MultiMC\Instances\Friends N Such\" curl ftp://mc.itcommand.net:21/Primary-mmc-pack.json --user "mcupdate:MCUpdate@32" -o "MultiMC\Instances\Friends N Such\mmc-pack.json" >nul 2>nul
+echo Downloading Client Mod List...
 set update=false
 rem downloads server's copy of client list
 call :ftpls mc.itcommand.net mcupdate MCUpdate@32 /ExplorerClient
@@ -550,6 +551,20 @@ timeout /t 5
 goto mainmenu
 
 
+:mustreset
+cls
+echo The latest update of Friends N Such requires a fresh reset of both the Friends N Such and the Explorer Instances.
+echo.
+echo It is recommended that you do NOT carry and config over, as mods and config menues have changed.
+echo.
+echo Please copy any screenshots or resourcepacks you would like to save out of the following two folders:
+echo.
+echo %cd%\MultiMC\Instances\Friends N Such\.minecraft
+echo %cd%\MultiMC\Instances\Explorer\.minecraft
+echo.
+pause
+goto forceresetint
+
 
 :resetint
 cls
@@ -558,6 +573,7 @@ echo You will lose any config you have saved.
 echo Are you sure?
 choice
 if %errorlevel%==2 goto mainmenu
+:forceresetint
 cls
 echo [96mResetting Instance . . .
 taskkill /f /im javaw.exe >nul 2>nul
