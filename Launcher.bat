@@ -346,7 +346,7 @@ echo 4] Reset Mods (Re-Downloads All Mods)
 echo 5] Reset Instances (Removes all Instances and Config).
 echo 6] Full Reset (Reinstalls MultiMC and Instances / Config).
 echo 7] Open MultiMC menu [90m(Settings, accounts)[0m
-echo 8] [96mToggle Better Foliage [90m(Unavailable for 1.18.2)[0m
+echo 8] [90mToggle Better Foliage [90m(Unavailable for 1.18.2)[0m
 echo 9] Open Latest Log
 echo H] Help Files
 echo [90mX] Exit ^| [R] Refresh[0m
